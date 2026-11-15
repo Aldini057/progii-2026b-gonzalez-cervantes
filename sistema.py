@@ -1,6 +1,9 @@
 """Clase principal del control escolar con las operaciones del contrato."""
 
-from validacion import CodigoDuplicadoException, ValidacionException
+import almacen
+from almacen import Bitacora
+from modelo import Materia, Persona
+from validacion import CodigoDuplicadoException, ValidacionException, Validador
 
 
 class Repositorio:
@@ -50,3 +53,93 @@ class Repositorio:
         """Elimina todos los registros."""
         self._personas.clear()
         self._materias.clear()
+
+
+class ControlEscolar:
+    """Coordina las operaciones del control escolar."""
+
+    def __init__(self):
+        """Crea el sistema vacío; tiene un repositorio y una bitácora propios."""
+        self._repositorio = Repositorio()
+        self._bitacora = Bitacora()
+
+    @property
+    def bitacora(self):
+        """Bitácora donde el sistema anota lo que va pasando (solo lectura)."""
+        return self._bitacora
+
+    def registrar(self, objeto):
+        """Da de alta un Alumno, un Docente o una Materia ya construidos.
+
+        Lanza CodigoDuplicadoException si el código o la clave ya existen y
+        ValidacionException si el objeto no es de un tipo que se pueda registrar.
+        """
+        try:
+            if isinstance(objeto, Persona):
+                self._repositorio.agregar_persona(objeto)
+            elif isinstance(objeto, Materia):
+                self._repositorio.agregar_materia(objeto)
+            else:
+                raise ValidacionException(
+                    "Se esperaba un Alumno, un Docente o una Materia válidos, "
+                    f"pero se recibió {type(objeto).__name__}."
+                )
+        except ValidacionException as error:
+            self._bitacora.anotar(f"Registro rechazado: {error}")
+            raise
+        self._bitacora.anotar(f"Alta: {objeto.describir()}")
+
+    def crear_materia(self, materia):
+        """Da de alta una materia; equivale a registrar(materia) pero solo acepta materias."""
+        if not isinstance(materia, Materia):
+            raise ValidacionException("Se esperaba un objeto Materia.")
+        self.registrar(materia)
+
+    def asignar(self, identificador, clave):
+        """Inscribe a la persona con ese código en la materia con esa clave.
+
+        Lanza ValidacionException si el código o la clave son inválidos, si
+        la persona o la materia no existen o si ya estaba inscrita, y
+        CupoExcedidoException si la materia está llena.
+        """
+        try:
+            codigo = Validador.codigo(identificador)
+            clave = Validador.clave(clave)
+            persona = self._repositorio.buscar_persona(codigo)
+            materia = self._repositorio.buscar_materia(clave)
+            materia.inscribir(persona.codigo)
+        except ValidacionException as error:
+            self._bitacora.anotar(f"Inscripción rechazada: {error}")
+            raise
+        self._bitacora.anotar(f"Inscripción: {persona.codigo} en {materia.clave}")
+
+    def listar(self):
+        """Imprime todos los registros; cada uno se describe con su propio formato."""
+        secciones = (("PERSONAS", self._repositorio.personas()),
+                     ("MATERIAS", self._repositorio.materias()))
+        for titulo, registros in secciones:
+            print(f"--- {titulo} ({len(registros)}) ---")
+            for registro in registros:
+                print(registro.describir())
+
+    def personas(self):
+        """Devuelve la lista de personas registradas."""
+        return self._repositorio.personas()
+
+    def materias(self):
+        """Devuelve la lista de materias registradas."""
+        return self._repositorio.materias()
+
+    def reiniciar(self):
+        """Deja el sistema sin registros (la bitácora se conserva)."""
+        self._repositorio.vaciar()
+
+    @staticmethod
+    def guardar(sistema, ruta):
+        """Escribe el estado del sistema en la ruta indicada (delega en almacen)."""
+        almacen.guardar(sistema, ruta)
+
+    @staticmethod
+    def cargar(sistema, ruta):
+        """Reconstruye el sistema desde la ruta indicada (delega en almacen)."""
+        return almacen.cargar(sistema, ruta)

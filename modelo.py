@@ -94,3 +94,71 @@ class Docente(Persona):
     def desde_dict(cls, datos):
         """Reconstruye un docente a partir de los datos guardados."""
         return cls(datos["codigo"], datos["nombre"], datos["departamento"])
+
+
+class Materia:
+    """Lleva el registro de inscritos dentro de un cupo máximo."""
+
+    def __init__(self, clave, nombre, cupo_maximo):
+        """Valida la clave, el nombre y el cupo; empieza sin inscritos."""
+        self._clave = Validador.clave(clave)
+        self._nombre = Validador.texto_obligatorio(nombre, "nombre de la materia")
+        self._cupo_maximo = Validador.cupo(cupo_maximo)
+        self._inscritos = []
+
+    @property
+    def clave(self):
+        """Clave única de la materia (solo lectura)."""
+        return self._clave
+
+    @property
+    def nombre(self):
+        """Nombre de la materia (solo lectura)."""
+        return self._nombre
+
+    @property
+    def cupo_maximo(self):
+        """Número máximo de inscritos (solo lectura)."""
+        return self._cupo_maximo
+
+    @property
+    def inscritos(self):
+        """Códigos inscritos, como tupla para que no se modifiquen desde fuera."""
+        return tuple(self._inscritos)
+
+    @property
+    def lugares_disponibles(self):
+        """Lugares que todavía quedan en la materia."""
+        return self._cupo_maximo - len(self._inscritos)
+
+    def esta_inscrito(self, codigo):
+        """Indica si el código ya está inscrito en la materia."""
+        return codigo in self._inscritos
+
+    def inscribir(self, codigo):
+        """Inscribe un código si no está repetido y queda lugar."""
+        if self.esta_inscrito(codigo):
+            raise ValidacionException(
+                f"La persona {codigo} ya está inscrita en la materia {self.clave}."
+            )
+        if self.lugares_disponibles <= 0:
+            raise CupoExcedidoException(
+                f"La materia {self.clave} ya alcanzó su cupo máximo ({self.cupo_maximo})."
+            )
+        self._inscritos.append(codigo)
+
+    def describir(self):
+        """Devuelve una línea con los datos de la materia y sus inscritos."""
+        lista = ", ".join(self._inscritos) or "ninguno"
+        return (f"Materia  [{self.clave}] {self.nombre} | "
+                f"Cupo: {len(self._inscritos)}/{self.cupo_maximo} | Inscritos: {lista}")
+
+    def a_dict(self):
+        """Devuelve los datos de la materia listos para guardarse."""
+        return {"clave": self.clave, "nombre": self.nombre,
+                "cupo_maximo": self.cupo_maximo, "inscritos": list(self._inscritos)}
+
+    @classmethod
+    def desde_dict(cls, datos):
+        """Reconstruye la materia vacía; los inscritos se vuelven a asignar al cargar."""
+        return cls(datos["clave"], datos["nombre"], datos["cupo_maximo"])

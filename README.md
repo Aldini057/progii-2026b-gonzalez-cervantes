@@ -28,6 +28,14 @@ python main.py
 - Si lo ejecutan otra vez, recupera la información del archivo.
 - Si borran o dañan `datos_escolares.json`, el programa avisa y vuelve a arrancar vacío.
 
+También incluye una interfaz web local opcional (sin dependencias externas):
+
+```bash
+python servidor.py
+```
+
+Abre en tu navegador `http://localhost:8000` para operar el sistema visualmente.
+
 ## Archivos
 
 | Archivo | De qué se encarga |
@@ -37,6 +45,7 @@ python main.py
 | `sistema.py` | `Repositorio` (colecciones en memoria) y `ControlEscolar` (clase principal del contrato) |
 | `almacen.py` | `Bitacora` y las funciones `guardar(sistema, ruta)` / `cargar(sistema, ruta)` |
 | `main.py` | Programa de demostración que se ejecuta |
+| `servidor.py` | Servidor HTTP e interfaz web local interactiva |
 
 ## El contrato
 

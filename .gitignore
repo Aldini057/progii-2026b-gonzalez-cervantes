@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Datos locales del sistema
+datos_escolares.json
+*.tmp

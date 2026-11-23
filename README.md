@@ -1,4 +1,4 @@
-# Sistema de Control Escolar (tipo SIIAU) — Hito 2
+# Sistema de Control Escolar (tipo SIIAU)
 
 Proyecto integrador de **Programación II** (CUGDL, ciclo 2026B), opción A.
 
@@ -28,6 +28,12 @@ python main.py
 - Si lo ejecutan otra vez, recupera la información del archivo.
 - Si borran o dañan `datos_escolares.json`, el programa avisa y vuelve a arrancar vacío.
 
+Para ejecutar la suite de pruebas automáticas (12 casos de prueba):
+
+```bash
+python pruebas.py
+```
+
 También incluye una interfaz web local opcional (sin dependencias externas):
 
 ```bash
@@ -45,7 +51,10 @@ Abre en tu navegador `http://localhost:8000` para operar el sistema visualmente.
 | `sistema.py` | `Repositorio` (colecciones en memoria) y `ControlEscolar` (clase principal del contrato) |
 | `almacen.py` | `Bitacora` y las funciones `guardar(sistema, ruta)` / `cargar(sistema, ruta)` |
 | `main.py` | Programa de demostración que se ejecuta |
+| `pruebas.py` | Suite de 12 pruebas unitarias automáticas (casos normales y límite) |
 | `servidor.py` | Servidor HTTP e interfaz web local interactiva |
+| `EJECUCION.md` | Guía detallada de ejecución local y acceso al servicio desplegado |
+| `DOCUMENTO_CIERRE.md` | Documento de cierre de una cuartilla para el Hito 3 |
 
 ## El contrato
 

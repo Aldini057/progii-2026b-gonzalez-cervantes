@@ -204,6 +204,7 @@ class ManejadorControlEscolar(BaseHTTPRequestHandler):
         sys.stderr.write(f"[{self.log_date_time_string()}] {format % args}\n")
 
     def _responder_json(self, codigo, datos):
+        """Serializa datos como JSON y envía la respuesta HTTP."""
         cuerpo = json.dumps(datos, ensure_ascii=False).encode("utf-8")
         self.send_response(codigo)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -212,6 +213,7 @@ class ManejadorControlEscolar(BaseHTTPRequestHandler):
         self.wfile.write(cuerpo)
 
     def do_GET(self):
+        """Sirve la página principal o devuelve el estado actual en JSON."""
         url = urlparse(self.path)
         if url.path == "/" or url.path == "/index.html":
             cuerpo = HTML_PAGINA.encode("utf-8")
@@ -225,7 +227,8 @@ class ManejadorControlEscolar(BaseHTTPRequestHandler):
         if url.path == "/api/estado":
             personas = []
             for p in sistema.personas():
-                detalle = p.carrera if isinstance(p, Alumno) else getattr(p, "departamento", "")
+                datos_p = p.a_dict()
+                detalle = datos_p.get("carrera") or datos_p.get("departamento", "")
                 personas.append({
                     "codigo": p.codigo,
                     "nombre": p.nombre,
@@ -253,6 +256,7 @@ class ManejadorControlEscolar(BaseHTTPRequestHandler):
         self.send_error(404, "Ruta no encontrada")
 
     def do_POST(self):
+        """Procesa altas, inscripciones y operaciones de persistencia vía POST."""
         url = urlparse(self.path)
         longitud = int(self.headers.get("Content-Length", 0))
         cuerpo = self.rfile.read(longitud).decode("utf-8") if longitud > 0 else "{}"
@@ -313,6 +317,7 @@ class ManejadorControlEscolar(BaseHTTPRequestHandler):
 
 
 def iniciar_servidor(puerto=PUERTO):
+    """Inicia el servidor HTTP local en el puerto indicado."""
     servidor = HTTPServer(("0.0.0.0", puerto), ManejadorControlEscolar)
     print(f"Servidor iniciado en http://localhost:{puerto}")
     print("Presiona Ctrl+C para detenerlo.")
